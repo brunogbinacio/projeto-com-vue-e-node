@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A tool to upload files.">
+    <meta name="keywords" content="upload, file upload">
+    <title>Subir Arquivo</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/converter.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .myButton {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition-duration: 0.4s;
+        }
+
+        .myButton:hover {
+            background-color: white;
+            color: black;
+            border: 2px solid #007bff;
+        }
+
+        .input-file-wrapper {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .input-file {
+            display: inline-block;
+            padding: 20px;
+            border: 2px dashed #007bff;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            text-align: center;
+            background-color: #f8f9fa;
+            margin: 0 auto;
+        }
+
+        .input-file-text-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .input-file button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 3px 20px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition-duration: 0.4s;
+        }
+
+        .input-file button:hover {
+            background-color: white;
+            color: black;
+            border: 2px solid #007bff;
+        }
+
+        #fileName {
+            margin-top: -1px;
+            font-size: 14px;
+            color: #6c757d;
+            display: inline-block;
+            vertical-align: middle;
+            text-align: center; 
+        }
+
+        #warning {
+            display: none;
+            color: red;
+            font-size: 12px;
+            margin-left: 10px;
+            vertical-align: middle;
+            position: relative;
+            right: -5px;
+            top: 0px;
+        }
+
+        #success {
+            display: none;
+            color: green;
+            margin-top: 10px;
+            left: 50;
+        }
+
+        #converter_logo {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        #converter_main_block .myButton {
+            margin-top: 10px; 
+        }
+    </style>
+</head>
+<body>
+<div class="content-wrapper">
+    <header id="converter_logo">
+        <div class="logo-wrapper">
+        </div>
+    </header>
+    <div id="converter_main_block">
+        <a href="#!">
+            <img alt="Logo" src="{{ url_for('static', filename='static/logo.png') }}" width="350">
+        </a>
+        <form id="converter_main_form" class="row" enctype="multipart/form-data">
+            <div class="input-file-wrapper">
+                <div class="input-file" id="fileToConvert">
+                    <div class="input-file-text-wrapper">
+                        <button type="button" onclick="document.getElementById('fileInput').click()">Arquivo</button>
+                        <span id="fileName">Nenhum arquivo selecionado</span>
+                        <img id="warning" src="{{ url_for('static', filename='img/warning.png') }}" alt="warning" width="20">
+                    </div>
+                    <input type="file" id="fileInput" name="cvd_controle_clientes" style="display: none;" onchange="updateFileName()">
+                </div>
+                <button type="button" class="myButton fileUpload" onclick="uploadFile()">Upload</button>
+            </div>
+            <div class="input-file-wrapper">    
+                <!-- Mensagens de status -->
+                <span id="success" style="display: none;">Arquivo enviado com sucesso!</span>
+                <span id="error" style="display: none;">Erro ao enviar o arquivo. Formato incorreto.</span>
+                <span id="warning" style="display: none;">Erro ao enviar o arquivo.</span>
+            </div>
+        </form>
+    </div>
+</div>
+<footer id="converter_footer">
+    <div class="container">
+        <p class="text-center">&copy; 2024 - Todos os direitos reservados</p>
+    </div>
+</footer>
+
+<script>
+    function updateFileName() {
+        var input = document.getElementById('fileInput');
+        var fileName = input.files.length > 0 ? input.files[0].name : 'Nenhum arquivo selecionado';
+        document.getElementById('fileName').innerText = fileName;
+        document.getElementById('warning').style.display = 'none'; 
+    }
+
+    function uploadFile() {
+        var input = document.getElementById('fileInput');
+        var warning = document.getElementById('warning');
+        var success = document.getElementById('success');
+        var error = document.getElementById('error');
+        
+        warning.style.display = 'none';
+        success.style.display = 'none';
+        error.style.display = 'none';
+
+        if (input.files.length === 0) {
+            document.getElementById('fileName').innerText = 'Nenhum arquivo selecionado'; 
+            warning.style.display = 'inline';
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('cvd_controle_clientes', input.files[0]);
+
+        console.log('Uploading file:', input.files[0]); // Log do arquivo que está sendo enviado
+
+        fetch('/customer/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log('Response Status:', response.status); // Log do status da resposta
+            return response.json().then(data => {
+                console.log('Response Data:', data); // Log do conteúdo da resposta
+
+                if (!response.ok) {
+                    // Lidar com erros de resposta HTTP
+                    error.style.display = 'inline';
+                    document.getElementById('fileName').innerText = data.error || 'Erro ao enviar o arquivo.';
+                } else {
+                    // Lidar com respostas de sucesso
+                    if (data.error) {
+                        error.style.display = 'inline';
+                        document.getElementById('fileName').innerText = data.error || 'Erro ao enviar o arquivo.';
+                    } else {
+                        success.style.display = 'inline';
+                        document.getElementById('fileName').innerText = 'Arquivo enviado com sucesso!';
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Fetch Error:', error); // Log de erro no fetch
+            warning.style.display = 'inline';
+            document.getElementById('fileName').innerText = 'Erro ao enviar o arquivo.';
+        });
+    }
+</script>
+</body>
+</html>

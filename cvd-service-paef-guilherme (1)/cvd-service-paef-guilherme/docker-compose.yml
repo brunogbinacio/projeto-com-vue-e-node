@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: teste123
+      POSTGRES_DB: DB-CVD-PAEF
+    ports:
+      - "5432:5432"
+    volumes:
+      - C:/PAEF/postgre_persistent_dir:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana_container
+    ports:
+      - "3000:3000"
+    volumes:
+      - C:/PAEF/grafana_persistent_dir:/var/lib/grafana
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app_container
+    environment:
+      - DATABASE_URL=postgresql://postgres:teste123@postgres:5432/DB-CVD-PAEF
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
